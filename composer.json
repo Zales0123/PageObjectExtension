@@ -22,7 +22,9 @@
     "require": {
         "php": "^7.1",
 
-        "behat/mink": "^1.7"
+        "behat/mink": "^1.7",
+        "behat/behat": "^3.5",
+        "symfony/dependency-injection": "^4.1"
     },
     "require-dev": {
         "symfony/routing": "^3.4"
