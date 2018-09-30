@@ -12,6 +12,7 @@ use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use Symfony\Component\DependencyInjection\Parameter;
 use Symfony\Component\DependencyInjection\Reference;
 
@@ -24,22 +25,28 @@ final class PageObjectExtension implements Extension
 
     public function load(ContainerBuilder $container, array $config): void
     {
+        try {
+            $scenarioContainer = $container->get('fob_context_service.service_container.scenario');
+        } catch (ServiceNotFoundException $exception) {
+            return;
+        }
+
         $pageDefinition = new Definition(Page::class, [
             new Reference('mink.default_session'),
-            new Parameter('%__behat__.mink.parameters%')
+            new Parameter('__behat__.mink.parameters')
         ]);
         $pageDefinition->setAbstract(true);
         $pageDefinition->setPublic(false);
 
-        $container->setDefinition('fob.behat.page', $pageDefinition);
+        $scenarioContainer->setDefinition('fob_page_object.behat.page', $pageDefinition);
 
-        $symfonyPageDefinition = new ChildDefinition('fob.behat.page');
+        $symfonyPageDefinition = new ChildDefinition('fob_page_object.behat.page');
         $symfonyPageDefinition->setClass(SymfonyPage::class);
         $symfonyPageDefinition->addArgument(new Reference('__symfony_shared__.router'));
         $symfonyPageDefinition->setAbstract(true);
         $symfonyPageDefinition->setPublic(false);
 
-        $container->setDefinition('fob.behat.symfony_page', $pageDefinition);
+        $scenarioContainer->setDefinition('fob_page_object.behat.symfony_page', $pageDefinition);
     }
 
     public function initialize(ExtensionManager $extensionManager): void
